@@ -4,3 +4,6 @@
 *.jar
 *.war
 *.ear
+
+# Using maven, ignore build dir.
+target/
