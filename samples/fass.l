@@ -1,0 +1,5 @@
+a = 90
+-L
+L -> LF+RFR+FL-F-LFLFL-FRFR+
+R -> -LFLF+RFRFR+F+RF-LFL-FR
+F -> F
