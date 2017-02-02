@@ -1,107 +1,25 @@
 package tr.rimerun.linden.engine;
 
-import tr.rimerun.jm.CharacterOrientedBaseParser;
 import tr.rimerun.jm.LinkedInputStream;
-import tr.rimerun.jm.Predicate;
-import tr.rimerun.jm.SimpleFn;
+import tr.rimerun.jm.Parser;
+import tr.rimerun.jm.ReaderBackedLinkedInputStream;
+import tr.rimerun.jm.Rule;
+import tr.rimerun.jm.rule.text.*;
 
+import java.io.StringReader;
 import java.util.List;
 
-public class LindenParser extends CharacterOrientedBaseParser {
-    public LindenParser(LinkedInputStream input) {
-        super(input);
-    }
-
-    // rawNum = rawNum:n digit:d -> (((Integer) n) * 10 + Character.digit((Character) d, 10)
-    //        | digit:d          -> (Character.digit((Character) d, 10)
-    private Object rawNum() {
-        return _or(new SimpleFn() {
-                       public Object call() {
-                           Object n = apply("rawNum");
-                           Object d = apply("digit");
-
-                           return ((Integer) n) * 10 + Character.digit((Character) d, 10);
-                       }
-                   }, new SimpleFn() {
-                       public Object call() {
-                           Object d = apply("digit");
-                           return Character.digit((Character) d, 10);
-                       }
-                   }
-        );
-    }
-
-    // letter = chr:d ?(Character.isLetter(d)) -> d
-    private Object letter() {
-        return applyWithPred("chr", new Predicate<Character>() {
-            public boolean eval(Character d) {
-                return Character.isLetter(d);
-            }
-        });
-    }
-
-    // num = spaces '-'?:minus rawNum:n -> (minus == null ? n : -1 * n)
-    private Object num() {
-        apply("spaces");
-
-        Object minus = _opt(new SimpleFn() {
-            public Object call() {
-                return applyWithArgs("exactly", '-');
-            }
-        });
-
-        Integer n = (Integer) apply("rawNum");
-
-        return minus == null ? n : -1 * n;
-    }
-
-    // linden = "a" "=" num:a spaces steps:init (spaces production)+:p -> new Linden(a, i, p);
-    private Object linden() {
-        applyWithArgs("token", "a");
-        applyWithArgs("token", "=");
-
-        int a = (Integer) apply("num");
-        apply("spaces");
-        String init = (String) apply("steps");
-
-        List<Object> p = _many1(new SimpleFn() {
-            public Object call() {
-                apply("spaces");
-                return apply("production");
-            }
-        });
-
-        return new LSystem(a, init, p);
-    }
-
-    // production = letter:name spaces "->" spaces steps:s -> new Production(name, s)
-    private Object production() {
-        String name = apply("letter").toString();
-        apply("spaces");
-        applyWithArgs("token", "->");
-        apply("spaces");
-
-        String s = (String) apply("steps");
-        return new Production(name, s);
-    }
-
-    // steps = step*:s -> charListToString(s)
-    private Object steps() {
-        List<Object> stepsChars = _many("step");
-        return charListToString(stepsChars);
-    }
-
+public class LindenParser {
     // step = chr:c ? (isLetter(c) || c == '+' || c == '-' || c == '[' || c == ']')
-    private Object step() {
-        return applyWithPred("chr", new Predicate() {
-            public boolean eval(Object o) {
-                Character c = (Character) o;
-                return Character.isLetter(c) || c == '+' || c == '-' || c == '[' || c == ']';
-            }
-        });
-    }
+    public static final Rule step = new Rule() {
+        public Object execute(Parser parser) {
+            Character c = (Character) parser.apply(Chr.Instance);
+            parser.ensure(Character.isLetter(c) || c == '+' || c == '-' || c == '[' || c == ']');
+            return c;
+        }
+    };
 
-    private String charListToString(List<Object> chars) {
+    private static String charListToString(List<Object> chars) {
         StringBuilder sb = new StringBuilder();
 
         for (Object o : chars) {
@@ -109,5 +27,51 @@ public class LindenParser extends CharacterOrientedBaseParser {
         }
 
         return sb.toString();
+    }
+
+    // steps = step*:s -> charListToString(s)
+    private static final Rule steps = new Rule() {
+        public Object execute(Parser parser) {
+            List<Object> stepsChars = parser._many(step);
+            return charListToString(stepsChars);
+        }
+    };
+
+    // production = letter:name spaces "->" spaces steps:s -> new Production(name, s)
+    private static final Rule production = new Rule() {
+        public Object execute(Parser parser) {
+            String name = parser.apply(Letter.Instance).toString();
+            parser.apply(Spaces.Instance);
+            parser.applyWithArgs(Token.Instance, "->");
+            parser.apply(Spaces.Instance);
+
+            String s = (String) parser.apply(steps);
+            return new Production(name, s);
+        }
+    };
+
+    // linden = "a" "=" num:a spaces steps:init (spaces production)+:p -> new Linden(a, i, p);
+    public static final Rule linden = new Rule() {
+        public Object execute(Parser parser) {
+            parser.applyWithArgs(Token.Instance, "a");
+            parser.applyWithArgs(Token.Instance, "=");
+
+            int a = (Integer) parser.apply(Num.Instance);
+            parser.apply(Spaces.Instance);
+            String init = (String) parser.apply(steps);
+
+            List<Object> p = parser._many1(new Rule() {
+                public Object execute(Parser parser) {
+                    parser.apply(Spaces.Instance);
+                    return parser.apply(production);
+                }
+            });
+
+            return new LSystem(a, init, p);
+        }
+    };
+
+    public static LinkedInputStream streamFromString(String str) {
+        return new ReaderBackedLinkedInputStream(new StringReader(str));
     }
 }

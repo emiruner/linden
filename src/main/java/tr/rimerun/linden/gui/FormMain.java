@@ -1,6 +1,7 @@
 package tr.rimerun.linden.gui;
 
-import tr.rimerun.jm.BasicLinkedInputStream;
+import tr.rimerun.jm.Parser;
+import tr.rimerun.jm.ReaderBackedLinkedInputStream;
 import tr.rimerun.linden.engine.LSystem;
 import tr.rimerun.linden.engine.LindenParser;
 
@@ -51,6 +52,7 @@ public class FormMain extends JFrame {
         JLabel labelCode = new JLabel("Code:");
         textAreaCode = new JTextArea();
         textAreaCode.setRows(5);
+        textAreaCode.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
         JLabel labelStepSize = new JLabel("Step Size:");
 
@@ -117,8 +119,8 @@ public class FormMain extends JFrame {
             return;
         }
 
-        LindenParser parser = new LindenParser(BasicLinkedInputStream.fromString(textAreaCode.getText()));
-        LSystem ls = (LSystem) parser.apply("linden");
+        Parser parser = new Parser(LindenParser.streamFromString(textAreaCode.getText()));
+        LSystem ls = (LSystem) parser.apply(LindenParser.linden);
 
         panelDisplay.setParams(ls, stepSize, depth);
         panelDisplay.repaint();
