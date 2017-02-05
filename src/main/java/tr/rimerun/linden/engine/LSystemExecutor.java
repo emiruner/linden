@@ -16,7 +16,7 @@ public class LSystemExecutor {
         this.stepLength = stepLength;
         this.tracer = tracer;
         this.turtle = new Turtle();
-        this.turtleStack = new Stack<Turtle>();
+        this.turtleStack = new Stack<>();
     }
 
     public void execute() {

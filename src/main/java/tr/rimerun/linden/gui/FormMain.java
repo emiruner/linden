@@ -1,20 +1,26 @@
 package tr.rimerun.linden.gui;
 
+import tr.rimerun.jm.ParseFailure;
 import tr.rimerun.jm.Parser;
-import tr.rimerun.jm.ReaderBackedLinkedInputStream;
 import tr.rimerun.linden.engine.LSystem;
 import tr.rimerun.linden.engine.LindenParser;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static java.awt.GridBagConstraints.*;
 
@@ -22,7 +28,7 @@ public class FormMain extends JFrame {
     public static final Insets INSETS2 = new Insets(2, 2, 2, 2);
 
     private final JComboBox<ComboBoxFileItem> comboBoxInput;
-    private final JTextField textFieldDepth;
+    private final JSpinner spinnerDepth;
     private final LSystemDrawingPanel panelDisplay;
     private final JSlider sliderStepSize;
     private final JTextArea textAreaCode;
@@ -33,7 +39,7 @@ public class FormMain extends JFrame {
 
         JLabel labelInput = new JLabel("Input:");
 
-        comboBoxInput = new JComboBox<ComboBoxFileItem>();
+        comboBoxInput = new JComboBox<>();
         comboBoxInput.addItem(new ComboBoxFileItem(null));
 
         comboBoxInput.addItemListener(new ItemListener() {
@@ -49,10 +55,32 @@ public class FormMain extends JFrame {
             }
         });
 
+        final JButton buttonDraw = new JButton("Draw");
+
+        buttonDraw.setEnabled(false);
+        buttonDraw.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                draw();
+            }
+        });
+
         JLabel labelCode = new JLabel("Code:");
         textAreaCode = new JTextArea();
-        textAreaCode.setRows(5);
-        textAreaCode.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        textAreaCode.setRows(10);
+        textAreaCode.setFont(new Font(Font.MONOSPACED, Font.BOLD, 14));
+
+        textAreaCode.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) {
+                buttonDraw.setEnabled(!textAreaCode.getText().trim().isEmpty());
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                buttonDraw.setEnabled(!textAreaCode.getText().trim().isEmpty());
+            }
+
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
 
         JLabel labelStepSize = new JLabel("Step Size:");
 
@@ -64,16 +92,14 @@ public class FormMain extends JFrame {
             }
         });
 
-        JButton buttonDraw = new JButton("Draw");
-        buttonDraw.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+        JLabel labelDepth = new JLabel("Depth:");
+        spinnerDepth = new JSpinner(new SpinnerNumberModel(5, 1, 100, 1));
+
+        spinnerDepth.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
                 draw();
             }
         });
-
-        JLabel labelDepth = new JLabel("Depth:");
-        textFieldDepth = new JTextField("5");
-
         panelDisplay = new LSystemDrawingPanel();
 
         add(labelInput, new GridBagConstraints(0, 0, 1, 1, 0, 0, EAST, NONE, INSETS2, 0, 0));
@@ -87,13 +113,13 @@ public class FormMain extends JFrame {
         add(sliderStepSize, new GridBagConstraints(1, 2, 1, 1, 1, 0, CENTER, HORIZONTAL, INSETS2, 0, 0));
 
         add(labelDepth, new GridBagConstraints(0, 3, 1, 1, 0, 0, EAST, NONE, INSETS2, 0, 0));
-        add(textFieldDepth, new GridBagConstraints(1, 3, 1, 1, 1, 0, CENTER, HORIZONTAL, INSETS2, 0, 0));
+        add(spinnerDepth, new GridBagConstraints(1, 3, 1, 1, 1, 0, CENTER, HORIZONTAL, INSETS2, 0, 0));
         add(buttonDraw, new GridBagConstraints(2, 3, 1, 1, 0, 0, CENTER, HORIZONTAL, INSETS2, 0, 0));
 
-        panelDisplay.setBorder(new LineBorder(Color.BLUE));
+        panelDisplay.setBorder(new EtchedBorder());
         add(panelDisplay, new GridBagConstraints(0, 4, 3, 1, 1, 1, CENTER, BOTH, INSETS2, 0, 0));
 
-        setSize(640, 480);
+        setSize(800, 600);
     }
 
     private void comboBoxInputItemStateChanged() {
@@ -110,20 +136,22 @@ public class FormMain extends JFrame {
 
     private void draw() {
         double stepSize = sliderStepSize.getValue() / 100.0;
-        int depth;
+        int depth = ((Number) spinnerDepth.getValue()).intValue();
 
-        try {
-            depth = Integer.parseInt(textFieldDepth.getText());
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid depth: " + textFieldDepth.getText(), "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+        if(textAreaCode.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please load or enter code before trying to draw.", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            Parser parser = new Parser(LindenParser.streamFromString(textAreaCode.getText()));
+
+            try {
+                LSystem ls = (LSystem) parser.apply(LindenParser.linden);
+
+                panelDisplay.setParams(ls, stepSize, depth);
+                panelDisplay.repaint();
+            } catch(ParseFailure ex) {
+                JOptionPane.showMessageDialog(this, "Invalid code: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
-
-        Parser parser = new Parser(LindenParser.streamFromString(textAreaCode.getText()));
-        LSystem ls = (LSystem) parser.apply(LindenParser.linden);
-
-        panelDisplay.setParams(ls, stepSize, depth);
-        panelDisplay.repaint();
     }
 
     private void buttonChangeSourceFolderOnClick() {
@@ -170,29 +198,10 @@ public class FormMain extends JFrame {
     }
 
     private String readAll(File file) {
-        FileInputStream in = null;
-        StringBuilder sb = new StringBuilder();
         try {
-            in = new FileInputStream(file);
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
+            return new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
         } catch (IOException ex) {
             throw new RuntimeException("an error occured while reading file", ex);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-
-        return sb.toString();
     }
 }
