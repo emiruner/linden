@@ -1,19 +1,20 @@
-package tr.rimerun.linden.engine;
+package rme.linden.engine;
 
-import tr.rimerun.jm.LinkedInputStream;
-import tr.rimerun.jm.Parser;
-import tr.rimerun.jm.ReaderBackedLinkedInputStream;
-import tr.rimerun.jm.Rule;
-import tr.rimerun.jm.rule.text.*;
+import rme.jm.LinkedInputStream;
+import rme.jm.Parser;
+import rme.jm.ReaderBackedLinkedInputStream;
+import rme.jm.Rule;
 
 import java.io.StringReader;
 import java.util.List;
 
-public class LindenParser {
+import static rme.jm.TextRules.*;
+
+public final class LinenParserRules {
     // step = chr:c ? (isLetter(c) || c == '+' || c == '-' || c == '[' || c == ']')
     public static final Rule step = new Rule() {
         public Object execute(Parser parser) {
-            Character c = (Character) parser.apply(Chr.Instance);
+            Character c = (Character) parser.apply(chr);
             parser.ensure(Character.isLetter(c) || c == '+' || c == '-' || c == '[' || c == ']');
             return c;
         }
@@ -40,10 +41,10 @@ public class LindenParser {
     // production = letter:name spaces "->" spaces steps:s -> new Production(name, s)
     private static final Rule production = new Rule() {
         public Object execute(Parser parser) {
-            String name = parser.apply(Letter.Instance).toString();
-            parser.apply(Spaces.Instance);
-            parser.applyWithArgs(Token.Instance, "->");
-            parser.apply(Spaces.Instance);
+            String name = parser.apply(letter).toString();
+            parser.apply(spaces);
+            parser.applyWithArgs(token, "->");
+            parser.apply(spaces);
 
             String s = (String) parser.apply(steps);
             return new Production(name, s);
@@ -53,16 +54,16 @@ public class LindenParser {
     // linden = "a" "=" num:a spaces steps:init (spaces production)+:p -> new Linden(a, i, p);
     public static final Rule linden = new Rule() {
         public Object execute(Parser parser) {
-            parser.applyWithArgs(Token.Instance, "a");
-            parser.applyWithArgs(Token.Instance, "=");
+            parser.applyWithArgs(token, "a");
+            parser.applyWithArgs(token, "=");
 
-            int a = (Integer) parser.apply(Num.Instance);
-            parser.apply(Spaces.Instance);
+            int a = (Integer) parser.apply(num);
+            parser.apply(spaces);
             String init = (String) parser.apply(steps);
 
             List<Object> p = parser._many1(new Rule() {
                 public Object execute(Parser parser) {
-                    parser.apply(Spaces.Instance);
+                    parser.apply(spaces);
                     return parser.apply(production);
                 }
             });

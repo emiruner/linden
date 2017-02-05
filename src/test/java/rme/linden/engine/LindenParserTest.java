@@ -1,7 +1,7 @@
-package tr.rimerun.linden.engine;
+package rme.linden.engine;
 
 import org.junit.Test;
-import tr.rimerun.jm.Parser;
+import rme.jm.Parser;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,8 +13,8 @@ public class LindenParserTest {
                 "F -> F-F+F+[FF]-f-F+F\n" +
                 "f -> fFf\n\n\n";
 
-        Parser parser = new Parser(LindenParser.streamFromString(input));
-        LSystem ls = (LSystem) parser.apply(LindenParser.linden);
+        Parser parser = new Parser(LinenParserRules.streamFromString(input));
+        LSystem ls = (LSystem) parser.apply(LinenParserRules.linden);
 
         assertEquals(90, ls.getAngleIncrement());
         assertEquals("F-F-F-F", ls.getInit());

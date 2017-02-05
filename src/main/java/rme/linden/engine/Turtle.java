@@ -1,4 +1,4 @@
-package tr.rimerun.linden.engine;
+package rme.linden.engine;
 
 public class Turtle implements Cloneable {
     private double direction;

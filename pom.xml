@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>tr.com.euner</groupId>
+    <groupId>rme.linden</groupId>
     <artifactId>linden</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -24,7 +24,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>tr.rimerun.linden.gui.Main</mainClass>
+                            <mainClass>rme.linden.gui.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -53,11 +53,11 @@
         <dependency>
             <groupId>com.jgoodies</groupId>
             <artifactId>jgoodies-looks</artifactId>
-`            <version>2.7.0</version>
+            <version>2.7.0</version>
         </dependency>
 
         <dependency>
-            <groupId>tr.rimerun.jm</groupId>
+            <groupId>rme.jm</groupId>
             <artifactId>jm</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

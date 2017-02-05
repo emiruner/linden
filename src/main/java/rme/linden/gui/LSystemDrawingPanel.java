@@ -1,8 +1,8 @@
-package tr.rimerun.linden.gui;
+package rme.linden.gui;
 
-import tr.rimerun.linden.engine.LSystem;
-import tr.rimerun.linden.engine.LSystemExecutor;
-import tr.rimerun.linden.engine.LSystemTracer;
+import rme.linden.engine.LSystem;
+import rme.linden.engine.LSystemExecutor;
+import rme.linden.engine.LSystemTracer;
 
 import javax.swing.*;
 import java.awt.*;

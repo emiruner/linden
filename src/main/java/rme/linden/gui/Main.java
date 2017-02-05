@@ -1,7 +1,6 @@
-package tr.rimerun.linden.gui;
+package rme.linden.gui;
 
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
-import com.jgoodies.looks.plastic.theme.DesertBlue;
 import com.jgoodies.looks.plastic.theme.SkyRed;
 
 import javax.swing.*;

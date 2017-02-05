@@ -1,7 +1,7 @@
-package tr.rimerun.linden.engine;
+package rme.linden.engine;
 
 import org.junit.Test;
-import tr.rimerun.jm.Parser;
+import rme.jm.Parser;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -13,9 +13,9 @@ public class LSystemTest {
                 "F\n" +
                 "F -> F+F";
 
-        Parser parser = new Parser(LindenParser.streamFromString(input));
+        Parser parser = new Parser(LinenParserRules.streamFromString(input));
 
-        LSystem ls = (LSystem) parser.apply(LindenParser.linden);
+        LSystem ls = (LSystem) parser.apply(LinenParserRules.linden);
         TestTracer tracer = new TestTracer();
 
         LSystemExecutor executor = new LSystemExecutor(ls, 2, 10, tracer);

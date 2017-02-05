@@ -1,9 +1,9 @@
-package tr.rimerun.linden.gui;
+package rme.linden.gui;
 
-import tr.rimerun.jm.ParseFailure;
-import tr.rimerun.jm.Parser;
-import tr.rimerun.linden.engine.LSystem;
-import tr.rimerun.linden.engine.LindenParser;
+import rme.linden.engine.LinenParserRules;
+import rme.jm.ParseFailure;
+import rme.jm.Parser;
+import rme.linden.engine.LSystem;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -141,10 +141,10 @@ public class FormMain extends JFrame {
         if(textAreaCode.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please load or enter code before trying to draw.", "Error", JOptionPane.ERROR_MESSAGE);
         } else {
-            Parser parser = new Parser(LindenParser.streamFromString(textAreaCode.getText()));
+            Parser parser = new Parser(LinenParserRules.streamFromString(textAreaCode.getText()));
 
             try {
-                LSystem ls = (LSystem) parser.apply(LindenParser.linden);
+                LSystem ls = (LSystem) parser.apply(LinenParserRules.linden);
 
                 panelDisplay.setParams(ls, stepSize, depth);
                 panelDisplay.repaint();

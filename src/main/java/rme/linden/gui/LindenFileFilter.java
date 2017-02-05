@@ -1,4 +1,4 @@
-package tr.rimerun.linden.gui;
+package rme.linden.gui;
 
 import java.io.File;
 import java.io.FilenameFilter;
